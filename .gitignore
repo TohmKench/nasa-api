@@ -1,0 +1,68 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment variables (IMPORTANT - don't commit your API keys!)
+.env
+.env.local
+.env.production
+.env.development
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+nasa_cache.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Temporary folders
+tmp/
+temp/
+
+# TypeScript cache
+*.tsbuildinfo   

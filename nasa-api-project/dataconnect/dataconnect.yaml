@@ -1,0 +1,12 @@
+specVersion: "v1"
+serviceId: "nasa-api-project"
+location: "us-central1"
+schema:
+  source: "./schema"
+  datasource:
+    postgresql:
+      database: "fdcdb"
+      cloudSql:
+        instanceId: "nasa-api-project-fdc"
+      # schemaValidation: "COMPATIBLE"
+connectorDirs: ["./connector"]

@@ -1,0 +1,288 @@
+html,
+body,
+#root {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.apod-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 1;
+}
+
+.apod-explanation-box {
+    position: absolute;
+    top: 110px;
+    right: 20px;
+    max-width: 420px;
+    background: rgba(255, 255, 255, 0.8);
+    color: #222;
+    border-radius: 12px;
+    padding: 0.5rem 1rem 1rem 1rem;
+    z-index: 11;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.10);
+    font-size: 1rem;
+    line-height: 1.5;
+    backdrop-filter: blur(2px);
+    transition:
+        padding 0.3s,
+        opacity 0.5s,
+        max-width 0.35s cubic-bezier(.4, 0, .2, 1),
+        width 0.35s cubic-bezier(.4, 0, .2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.2rem;
+}
+
+/* When both explanation and thumbnails are hidden, shrink to button width */
+.apod-explanation-box.buttons-only {
+    max-width: 180px;
+    width: 180px;
+}
+
+.apod-explanation-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
+
+}
+
+.apod-info-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 12;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: justify;
+    justify-content: justify;
+    padding: 0.15rem 0.25rem;
+    border: 2px solid transparent;
+    margin: 0;
+    transition: background 0.2s, box-shadow 0.2s;
+    min-width: 40px;
+    min-height: 45px;
+}
+
+.apod-pause-btn {
+    min-width: 40px;
+    min-height: 45px;
+}
+
+.apod-info-btn:hover,
+.apod-thumb-btn:hover,
+.apod-pause-btn:hover {
+    background: #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.apod-info-btn .material-symbols-outlined {
+    font-size: 1.5rem;
+}
+
+.apod-explanation-text,
+.apod-image-list {
+    transition:
+        opacity 0.25s cubic-bezier(.4, 0, .2, 1),
+        max-height 0.25s cubic-bezier(.4, 0, .2, 1),
+        margin 0.25s cubic-bezier(.4, 0, .2, 1),
+        padding 0.25s cubic-bezier(.4, 0, .2, 1);
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+/* When showing content, add delay to wait for box expansion */
+.apod-explanation-text:not(.hide),
+.apod-image-list:not(.hide) {
+    opacity: 1;
+    max-height: 400px;
+    margin-bottom: 0.5rem;
+    padding: initial;
+    pointer-events: all;
+    transition-delay: 0.35s;
+    /* Wait for box to expand first */
+}
+
+/* When hiding, content fades out immediately with no delay */
+.apod-explanation-text.hide,
+.apod-image-list.hide {
+    opacity: 0;
+    max-height: 0;
+    margin-bottom: 0;
+    padding: 0;
+    pointer-events: none;
+    transition-delay: 0s;
+    /* Content disappears immediately */
+}
+
+/* Box shrinking should wait for content to disappear */
+.apod-explanation-box.buttons-only {
+    max-width: 180px;
+    width: 180px;
+    transition-delay: 0.25s;
+    /* Wait for content to fade out completely */
+}
+
+/* When expanding, no delay */
+.apod-explanation-box:not(.buttons-only) {
+    transition-delay: 0s;
+    /* Expand immediately */
+}
+
+/* Add delay to box shrinking so content fades out first */
+.apod-explanation-box {
+    transition:
+        padding 0.3s,
+        opacity 0.5s,
+        max-width 0.35s cubic-bezier(.4, 0, .2, 1),
+        width 0.35s cubic-bezier(.4, 0, .2, 1),
+        height 0.35s cubic-bezier(.4, 0, .2, 1),
+        margin 0.35s cubic-bezier(.4, 0, .2, 1);
+}
+
+.apod-thumb-container {
+    position: relative;
+    display: inline-block;
+    z-index: 20;
+    /* Ensure container is above others when hovered */
+}
+
+.apod-thumb-container:hover {
+    z-index: 130;
+    /* Even higher when hovered */
+}
+
+.apod-thumb {
+    width: 60px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: border 0.2s, opacity 0.2s, transform 0.3s cubic-bezier(.4, 0, .2, 1);
+    z-index: 2;
+}
+
+.apod-thumb-container:hover .apod-thumb {
+    transform: scale(1.5);
+    z-index: 2;
+    opacity: 1;
+    /* <-- Make image fully opaque on hover */
+    border: 2px solid #7f6fff;
+}
+
+.apod-thumb-fav-btn {
+    position: absolute;
+    top: -6px;
+    right: -10px;
+    background: rgba(0, 0, 0, 0.55);
+    /* default, semi-transparent */
+    border: none;
+    border-radius: 50%;
+    padding: 2px 2px;
+    cursor: pointer;
+    opacity: 0;
+    transition:
+        opacity 0.2s,
+        background 0.2s,
+        transform 0.3s cubic-bezier(.4, 0, .2, 1);
+    z-index: 50;
+    /* Much higher than .apod-thumb */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.apod-thumb-container:hover .apod-thumb-fav-btn {
+    opacity: 1;
+    background: #222;
+    /* fully opaque on hover */
+    pointer-events: auto;
+
+    transition-delay: 0.15s;
+    /* matches the image zoom duration */
+}
+
+.apod-thumb-container:hover {
+    transform: scale(1.5);
+}
+
+
+.apod-controls {
+    position: fixed;
+    left: 40px;
+    bottom: 40px;
+    z-index: 20;
+    display: flex;
+    gap: 0.5rem;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.apod-btn {
+    background: rgba(255, 255, 255, 0.85);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.apod-fav-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    cursor: pointer;
+    z-index: 12;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.apod-fav-btn:hover {
+    background: #ffeaea;
+}
+
+.apod-header-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 12;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem 0.25rem;
+    margin: 0 0.2rem;
+    min-width: 40px;
+    min-height: 40px;
+    transition: background 0.2s, box-shadow 0.2s;
+}
+
+.apod-header-btn:hover {
+    background: #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.apod-header-btn .material-symbols-outlined {
+    font-size: 1.5rem;
+    transition: color 0.2s;
+}

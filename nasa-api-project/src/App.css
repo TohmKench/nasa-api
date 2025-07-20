@@ -1,0 +1,7 @@
+/* Reset default browser margin and padding */
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+}
