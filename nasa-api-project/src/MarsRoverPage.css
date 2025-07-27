@@ -1,0 +1,67 @@
+.mars-modal-photo-grid {
+  scrollbar-width: thin;
+  scrollbar-color: #ffb347 #222;
+}
+.mars-modal-photo-grid::-webkit-scrollbar {
+  width: 0.5em;
+  background: transparent;
+}
+.mars-modal-photo-grid::-webkit-scrollbar-thumb {
+  background: #ffb347;
+  border-radius: 8px;
+  opacity: 0.3;
+}
+.mars-modal-photo-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Bar chart scrollbar styling */
+.bar-chart-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #ffb347 #333;
+  cursor: grab;
+  user-select: none;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+}
+
+.bar-chart-scroll::-webkit-scrollbar {
+  height: 8px;
+  display: block !important;
+}
+
+.bar-chart-scroll::-webkit-scrollbar-track {
+  background: #333;
+  border-radius: 4px;
+}
+
+.bar-chart-scroll::-webkit-scrollbar-thumb {
+  background: #ffb347;
+  border-radius: 4px;
+  transition: background 0.2s ease;
+}
+
+.bar-chart-scroll::-webkit-scrollbar-thumb:hover {
+  background: #ff9f1c;
+}
+
+.bar-chart-scroll:active {
+  cursor: grabbing;
+}
+
+/* Camera dropdown styling */
+.camera-select {
+  background: #333 !important;
+  color: #fff !important;
+}
+
+.camera-select option {
+  background: #333 !important;
+  color: #fff !important;
+  padding: 8px !important;
+}
+
+.camera-select:focus {
+  border-color: #4fc3f7 !important;
+  box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.2) !important;
+} 

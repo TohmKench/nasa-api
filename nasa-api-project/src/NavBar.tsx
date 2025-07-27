@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
 import { auth } from "./firebaseConfig";
 import './index.css'; // Ensure global styles are applied
+import { Link } from 'react-router-dom';
 
 const NavBar: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -34,8 +35,10 @@ const NavBar: React.FC = () => {
           style={{ height: '100px', width: 'auto', marginLeft: '-35px' }}
         />
       </div>
-      <button className="nav-btn" onClick={() => window.location.href = '/'}>APOD</button>
-      <button className="nav-btn" onClick={() => window.location.href = '/'}>Mars Rover</button>
+      <Link to="/" className="nav-link">APOD</Link>
+      <Link to="/mars-rover" className="nav-link">Mars Rover</Link>
+      <Link to="/asteroid-watch" className="nav-link">Asteroid Watch</Link>
+      {/* <Link to="/iss-globe" className="nav-link">ISS Globe</Link> */}
       {user && (
         <button className="nav-btn" onClick={() => window.location.href = '/favourites'}>
           My Favourites

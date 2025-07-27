@@ -4,6 +4,7 @@ import './nasaHomePage.css'
 import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "./firebaseConfig";
+import { useQuery, gql } from '@apollo/client';
 
 interface ApodItem {
   url: string;
@@ -16,60 +17,108 @@ interface ApodImage {
   url: string;
   hdurl?: string;
   explanation: string;
+  date: string;
+  title: string;
+  media_type?: string;
 }
 
 const db = getFirestore();
 
-function HomePage() {
-  const [apodImages, setApodImages] = useState<ApodImage[]>([]);
+const GET_APOD_IMAGES = gql`
+  query {
+    apodImages {
+      date
+      title
+      explanation
+      url
+      hdurl
+      media_type
+    }
+  }
+`;
+
+const ApodGallery = () => {
+  const { loading, error, data } = useQuery(GET_APOD_IMAGES);
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  return (
+    <div>
+      {data.apodImages.map((img: ApodImage) => (
+        <img key={img.date} src={img.hdurl || img.url} alt={img.title} />
+      ))}
+    </div>
+  );
+};
+
+// Utility to get/set local favorites
+const LOCAL_FAV_KEY = 'apod_local_favorites';
+const getLocalFavorites = (): { url: string; explanation: string; id: number }[] => {
+  try {
+    return JSON.parse(localStorage.getItem(LOCAL_FAV_KEY) || '[]');
+  } catch {
+    return [];
+  }
+};
+const setLocalFavorites = (favs: { url: string; explanation: string; id: number }[]) => {
+  localStorage.setItem(LOCAL_FAV_KEY, JSON.stringify(favs));
+};
+
+const HomePage = () => {
+  const { loading, error, data } = useQuery(GET_APOD_IMAGES);
   const [current, setCurrent] = useState(0);
   const [fade, setFade] = useState(true);
   const [showExplanation, setShowExplanation] = useState(true);
   const [paused, setPaused] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [showThumbnailsDelayed, setShowThumbnailsDelayed] = useState(false);
-  const [favorites, setFavorites] = useState<{ url: string; explanation: string; id: number }[]>([]);
+  const [favorites, setFavorites] = useState<{ url: string; explanation: string; id: number }[]>(getLocalFavorites());
   const [user, setUser] = useState<any>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch images and explanations
-  useEffect(() => {
-    fetch('/api/apod/last7days')
-      .then((res) => res.json())
-      .then((data: ApodItem[]) => {
-        const images = data
-          .filter((item) => item.media_type === 'image')
-          .map((item) => ({
-            url: item.url,
-            hdurl: item.hdurl,
-            explanation: item.explanation || '',
-          }));
-        setApodImages(images);
-      });
-  }, []);
+  const apodImages: ApodImage[] = data?.apodImages || [];
 
-  // Unified transition, fade, and preload logic
+  // On login, merge local favorites into Firestore and clear local cache
+  useEffect(() => {
+    if (user) {
+      const mergeFavorites = async () => {
+        const favRef = doc(db, "favorites", user.uid);
+        const favSnap = await getDoc(favRef);
+        const firestoreFavs = favSnap.exists() ? favSnap.data().items || [] : [];
+        const localFavs = getLocalFavorites();
+        // Merge, avoiding duplicates
+        const merged = [...firestoreFavs];
+        localFavs.forEach(localFav => {
+          if (!merged.some((f: any) => f.url === localFav.url)) {
+            merged.push(localFav);
+          }
+        });
+        await setDoc(favRef, { items: merged }, { merge: true });
+        setFavorites(merged);
+        setLocalFavorites([]); // Clear local cache
+      };
+      mergeFavorites();
+    } else {
+      setFavorites(getLocalFavorites());
+    }
+  }, [user]);
+
+  // Unified transition, fade, and preload logic (unchanged)
   useEffect(() => {
     if (apodImages.length === 0 || paused) return;
-
     function nextSlide() {
       setFade(false);
       setTimeout(() => {
-        // Preload the next image (use hdurl if available)
         const nextIndex = (current + 1) % apodImages.length;
         const img = new window.Image();
         img.src = apodImages[nextIndex].hdurl || apodImages[nextIndex].url;
-
         setCurrent(nextIndex);
         setFade(true);
-      }, 1500); // Fade out duration
+      }, 1500);
     }
-
     intervalRef.current = setInterval(nextSlide, 20000);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [apodImages, current, paused]);
 
   useEffect(() => {
@@ -77,38 +126,35 @@ function HomePage() {
     return () => unsub();
   }, []);
 
-  // Load favorites from Firestore when user logs in
-  useEffect(() => {
-    if (!user) {
-      setFavorites([]);
-      return;
-    }
-    const fetchFavorites = async () => {
-      const favRef = doc(db, "favorites", user.uid);
-      const favSnap = await getDoc(favRef);
-      if (favSnap.exists()) {
-        setFavorites(favSnap.data().items || []);
-      } else {
-        setFavorites([]);
-      }
-    };
-    fetchFavorites();
-  }, [user]);
-
-  // Update Firestore when favorites change
+  // Update Firestore/localStorage when favorites change
   const handleFavorite = async (img: ApodImage, idx: number, isFav: boolean) => {
-    if (!user) return;
-    const favRef = doc(db, "favorites", user.uid);
-    if (isFav) {
-      // Remove from favorites
-      await updateDoc(favRef, {
-        items: arrayRemove({ url: img.url, explanation: img.explanation, id: idx })
-      });
-      setFavorites(favorites.filter(fav => fav.url !== img.url));
-    } else {
-      // Add to favorites
-      await setDoc(favRef, { items: arrayUnion({ url: img.url, explanation: img.explanation, id: idx }) }, { merge: true });
-      setFavorites([...favorites, { url: img.url, explanation: img.explanation, id: idx }]);
+    const favObj = { url: img.url, explanation: img.explanation, id: idx };
+    try {
+      if (!user) {
+        // Local cache only
+        let localFavs = getLocalFavorites();
+        if (isFav) {
+          localFavs = localFavs.filter(fav => fav.url !== img.url);
+        } else {
+          localFavs = [...localFavs, favObj];
+        }
+        setLocalFavorites(localFavs);
+        setFavorites(localFavs);
+        return;
+      }
+      // Firestore logic
+      const favRef = doc(db, "favorites", user.uid);
+      if (isFav) {
+        await updateDoc(favRef, {
+          items: arrayRemove(favObj)
+        });
+        setFavorites(favorites.filter(fav => fav.url !== img.url));
+      } else {
+        await setDoc(favRef, { items: arrayUnion(favObj) }, { merge: true });
+        setFavorites([...favorites, favObj]);
+      }
+    } catch (err) {
+      alert('Error updating favorites: ' + (err instanceof Error ? err.message : String(err)));
     }
   };
 
@@ -119,13 +165,24 @@ function HomePage() {
     const currentUrl = apodImages[current].url;
     const currentExplanation = apodImages[current].explanation;
     const currentId = current;
-
+    const favObj = { url: currentUrl, explanation: currentExplanation, id: currentId };
     if (isFavorite) {
       setFavorites(favorites.filter(fav => fav.url !== currentUrl));
+      if (!user) {
+        let localFavs = getLocalFavorites().filter(fav => fav.url !== currentUrl);
+        setLocalFavorites(localFavs);
+      }
     } else {
-      setFavorites([...favorites, { url: currentUrl, explanation: currentExplanation, id: currentId }]);
+      setFavorites([...favorites, favObj]);
+      if (!user) {
+        let localFavs = [...getLocalFavorites(), favObj];
+        setLocalFavorites(localFavs);
+      }
     }
   };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <div
@@ -146,11 +203,7 @@ function HomePage() {
       }}
     >
       <NavBar />
-
-      {/* Overlay for readability */}
       <div className="apod-overlay" />
-
-      {/* Explanation box with images */}
       <div
         className={`apod-explanation-box${(!showExplanation && !showThumbnails) ? ' buttons-only' : ''}`}
         style={{
@@ -162,7 +215,6 @@ function HomePage() {
         }}
       >
         <div className="apod-explanation-header">
-          {/* Show label when explanation is visible */}
           {showExplanation && (
             <span className="apod-explanation-label" style={{ marginRight: 'auto', fontWeight: 600, fontSize: '1.05rem', color: '#444', paddingLeft: '0.2rem' }}>
               Image Description
@@ -216,16 +268,14 @@ function HomePage() {
             </span>
           </button>
         </div>
-        {/* Show explanation text if toggled */}
         <div
           className={`apod-explanation-text${showExplanation && apodImages[current]?.explanation ? '' : ' hide'}`}
           style={{ opacity: fade ? 1 : 0 }}
         >
           {showExplanation && apodImages[current]?.explanation}
         </div>
-        {/* Show thumbnails if toggled, with animation */}
         <div className={`apod-image-list${showThumbnails ? '' : ' hide'}`}>
-          {showThumbnails && apodImages.map((img, idx) => {
+          {showThumbnails && apodImages.map((img: ApodImage, idx) => {
             const isFav = favorites.some(fav => fav.url === img.url);
             return (
               <div className="apod-thumb-container" key={img.url}>
@@ -244,7 +294,7 @@ function HomePage() {
                   }}
                 >
                   <span
-                    className="material-symbols-outlined"
+                    className={`material-symbols-outlined${isFav ? ' fav-star' : ''}`}
                     style={{ color: isFav ? '#ffd600' : '#fff', textShadow: '0 0 4px #000' }}
                   >
                     {isFav ? 'star' : 'star_border'}
@@ -255,10 +305,8 @@ function HomePage() {
           })}
         </div>
       </div>
-
-
     </div>
   );
-}
+};
 
-export default HomePage
+export default HomePage;

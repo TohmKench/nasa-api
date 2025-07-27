@@ -1,11 +1,12 @@
 html,
 body,
 #root {
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
     margin: 0;
     padding: 0;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .apod-overlay {
@@ -38,6 +39,7 @@ body,
     flex-direction: column;
     align-items: stretch;
     gap: 0.2rem;
+    overflow: visible !important;
 }
 
 /* When both explanation and thumbnails are hidden, shrink to button width */
@@ -209,7 +211,7 @@ body,
 }
 
 .apod-thumb-container:hover .apod-thumb-fav-btn {
-    opacity: 1;
+    opacity: 1 !important;
     background: #222;
     /* fully opaque on hover */
     pointer-events: auto;
@@ -220,6 +222,15 @@ body,
 
 .apod-thumb-container:hover {
     transform: scale(1.5);
+}
+
+.apod-thumb-fav-btn .material-symbols-outlined {
+    color: #fff;
+    transition: color 0.2s;
+}
+.apod-thumb-fav-btn:hover .material-symbols-outlined,
+.apod-thumb-fav-btn .fav-star {
+    color: #ffd600 !important;
 }
 
 
@@ -285,4 +296,20 @@ body,
 .apod-header-btn .material-symbols-outlined {
     font-size: 1.5rem;
     transition: color 0.2s;
+}
+
+.apod-image-list {
+    overflow: visible !important;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.App {
+    background-color: #181a20;
+    /* fallback color for when no image is loaded */
+    transition: background-image 0.5s ease-in-out, background-color 0.5s;
 }

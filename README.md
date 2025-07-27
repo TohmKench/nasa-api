@@ -1,204 +1,86 @@
-# NASA GraphQL API
+# NASA Space Explorer
 
-A TypeScript GraphQL API for NASA data using Apollo Server with SQLite caching.
+A full-stack React + GraphQL app for exploring NASA data: APOD, Mars Rover photos, Asteroid Watch, and more.
 
-## 🚀 Features
+## App Pages Overview
+- **APOD**: View NASA's Astronomy Picture of the Day, read explanations, and save favorites.
+- **Mars Rover**: Explore Mars rover photos by sol, camera, and timeline with interactive charts.
+- **Asteroid Watch**: Visualize near-Earth asteroids for any week in a radial orbit layout.
+- **My Favourites**: See and manage your saved APOD images.
+- **Login**: Sign in with email/password or Google to sync favorites.
 
-- **GraphQL API** with Apollo Server v4
-- **TypeScript** for type safety
-- **SQLite caching** for improved performance
-- **NASA APOD** (Astronomy Picture of the Day) queries
-- **NASA NEO** (Near Earth Objects) queries
-- **Automatic caching** with configurable TTL
-- **Error handling** and validation
-- **Health checks** and monitoring
-
-## 📁 Project Structure
-
-```
-src/
-├── models/          # Database models for caching
-│   ├── APODModel.ts
-│   └── NEOModel.ts
-├── resolvers/       # GraphQL resolvers
-│   └── index.ts
-├── services/        # External API services
-│   └── NASAService.ts
-├── typeDefs/        # GraphQL schema definitions
-│   └── index.ts
-├── types/           # TypeScript type definitions
-│   └── index.ts
-├── db.ts           # SQLite database setup
-└── server.ts       # Main server entry point
-```
-
-## 🛠️ Installation
+## Quick Start
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/nasa-graphql-api.git
+   git clone https://github.com/TohmKench/nasa-graphql-api.git
    cd nasa-graphql-api
    ```
 
 2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+   - For the backend (GraphQL server):
+     ```bash
+     cd nasa-api-project/nasa-api-graphql
+     npm install
+     ```
+   - For the frontend (React app):
+     ```bash
+     cd ../../nasa-api-project
+     npm install
+     ```
 
 3. **Set up environment variables**
+   - See the next section for .env examples for both backend and frontend.
+
+4. **Start the backend (GraphQL server)**
    ```bash
-   cp .env.example .env
+   cd nasa-api-project/nasa-api-graphql
+   npm start
    ```
-   
-   Edit `.env` and add your NASA API key:
-   ```
-   NASA_API_KEY=your_nasa_api_key_here
-   PORT=4000
-   NODE_ENV=development
-   CACHE_DURATION_HOURS=6
-   ```
+   - Runs on [http://localhost:4000](http://localhost:4000)
 
-4. **Start development server**
+5. **Start the frontend (React app)**
    ```bash
-   npm run dev
+   cd ../../nasa-api-project
+   npm start
    ```
+   - Runs on [http://localhost:5173](http://localhost:5173) (or the port shown in your terminal)
 
-## 🔑 Getting a NASA API Key
+## Environment Variables
 
-1. Visit [NASA API Portal](https://api.nasa.gov/)
-2. Sign up for a free API key
-3. Add it to your `.env` file
-
-## 📊 GraphQL Queries
-
-### Get APOD Data
-
-```graphql
-# Get today's APOD
-query {
-  getAPODs {
-    date
-    title
-    url
-    hdurl
-    explanation
-    mediaType
-  }
-}
-
-# Get APOD for date range
-query {
-  getAPODs(startDate: "2023-12-01", endDate: "2023-12-07") {
-    date
-    title
-    url
-    explanation
-  }
-}
-
-# Get specific APOD
-query {
-  getAPOD(date: "2023-12-01") {
-    title
-    url
-    explanation
-  }
-}
+### Backend (`nasa-api-project/nasa-api-graphql/.env`)
+```env
+NASA_API_KEY=your_nasa_api_key_here  # Get one at https://api.nasa.gov/
+PORT=4000                            # Optional, default is 4000
 ```
 
-### Get NEO Data
-
-```graphql
-query {
-  getNEOs(startDate: "2023-12-01", endDate: "2023-12-07") {
-    id
-    name
-    isPotentiallyHazardous
-    closeApproachDate
-    estimatedDiameter {
-      min
-      max
-    }
-    missDistance {
-      kilometers
-    }
-    relativeVelocity {
-      kmPerHour
-    }
-  }
-}
+### Frontend (`nasa-api-project/.env`)
+```env
+# For Firebase authentication (see src/firebaseConfig.ts for details)
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_firebase_app_id
 ```
+- The NASA API key is required for backend data fetching. Firebase keys are needed for authentication and favorites sync if you use those features.
 
-## 🌐 API Endpoints
+## Data Connect SDK (Pre-Configured)
 
-- **GraphQL Playground**: `http://localhost:4000/graphql`
-- **Health Check**: `http://localhost:4000/health`
-- **Root**: `http://localhost:4000/`
+This project includes a pre-generated Firebase Data Connect SDK in `nasa-api-project/dataconnect-generated/`. It is already set up to work with the included Firebase project configuration—**you do not need to generate or configure your own Data Connect instance to run or test this app**.
 
-## 📝 Scripts
+If you want to use your own Firebase project, you can update the environment variables in `nasa-api-project/.env` and `src/firebaseConfig.ts` with your own public Firebase config values. For most reviewers, the included setup will work out-of-the-box.
 
-```bash
-npm run dev        # Start development server with hot reload
-npm run build      # Build for production
-npm start          # Start production server
-npm test           # Run tests (if configured)
-```
+## Features
+- GraphQL API (Apollo Server v4, TypeScript)
+- Modern React frontend (Vite + React + TS)
+- Firebase authentication and favorites sync
+- NASA APOD and NEO data
+- Interactive data visualizations (charts, radial layouts)
+- Responsive, space-themed UI
 
-## 🗄️ Database
+## Support & Contributing
+- For help, [open an issue](https://github.com/TohmKench/nasa-graphql-api/issues).
+- Contributions welcome! Fork, branch, and open a pull request.
 
-The API uses SQLite for caching NASA data to improve performance and reduce API calls. The database file (`nasa_cache.db`) is automatically created when you start the server.
-
-### Cache Strategy
-
-- **APOD data**: Cached for 6 hours (configurable)
-- **NEO data**: Cached for 6 hours (configurable)
-- **Automatic cleanup**: Stale data is refreshed from NASA API
-
-## 🔧 Configuration
-
-Environment variables in `.env`:
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NASA_API_KEY` | Your NASA API key | `DEMO_KEY` |
-| `PORT` | Server port | `4000` |
-| `NODE_ENV` | Environment | `development` |
-| `CACHE_DURATION_HOURS` | Cache TTL in hours | `6` |
-
-## 🚦 Error Handling
-
-The API includes comprehensive error handling:
-
-- **Invalid date formats**: Returns helpful error messages
-- **NASA API failures**: Graceful fallback with caching
-- **Database errors**: Automatic retry logic
-- **Rate limiting**: Respects NASA API limits
-
-## 🔒 Security
-
-- API keys are never exposed in logs
-- Input validation on all queries
-- CORS configured for production
-- SQL injection protection with parameterized queries
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [NASA Open Data Portal](https://api.nasa.gov/) for providing amazing space data
-- [Apollo GraphQL](https://www.apollographql.com/) for the excellent GraphQL server
-- [SQLite](https://sqlite.org/) for the lightweight database
-
-## 📞 Support
-
-If you have any questions or run into issues, please [open an issue](https://github.com/yourusername/nasa-graphql-api/issues) on GitHub.
