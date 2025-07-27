@@ -36,22 +36,33 @@ A full-stack React + GraphQL app for exploring NASA data: APOD, Mars Rover photo
    ```bash
    cd nasa-api-project/nasa-api-graphql
    npm start
+   # or
+   npm run dev
    ```
    - Runs on [http://localhost:4000](http://localhost:4000)
 
 5. **Start the frontend (React app)**
    ```bash
    cd ../../nasa-api-project
-   npm start
+   npm run dev
    ```
    - Runs on [http://localhost:5173](http://localhost:5173) (or the port shown in your terminal)
 
 ## Environment Variables
 
+> **Note:** The required `.env` files are not included in this public repository for security reasons. If you need them to run the project, please contact me (e.g., by email) and I will provide the necessary `.env` files for both backend and frontend.
+
 ### Backend (`nasa-api-project/nasa-api-graphql/.env`)
 ```env
 NASA_API_KEY=your_nasa_api_key_here  # Get one at https://api.nasa.gov/
-PORT=4000                            # Optional, default is 4000
+
+# For Firebase authentication (see src/firebaseConfig.ts for details) (Used to update the database)
+VITE_FIREBASE_API_KEY=your_firebase_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
+VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_firebase_storage_bucket
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_firebase_messaging_sender_id
+VITE_FIREBASE_APP_ID=your_firebase_app_id
 ```
 
 ### Frontend (`nasa-api-project/.env`)
@@ -82,5 +93,3 @@ If you want to use your own Firebase project, you can update the environment var
 
 ## Support & Contributing
 - For help, [open an issue](https://github.com/TohmKench/nasa-graphql-api/issues).
-- Contributions welcome! Fork, branch, and open a pull request.
-
